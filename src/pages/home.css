@@ -1,0 +1,16 @@
+.center-header {
+  width: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.title {
+  font-size: larger;
+  font-weight: bold;
+}
+
+.padding-10px {
+  padding-left: 10px;
+  padding-right: 10px;
+}

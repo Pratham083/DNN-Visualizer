@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { Model } from './components/model';
+import { Home } from './pages/home';
 import './App.css';
 
 function App() {
-  return <Model></Model>;
+  return <Home></Home>;
 }
 
 export default App;

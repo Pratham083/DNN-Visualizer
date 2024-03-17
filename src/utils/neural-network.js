@@ -1,10 +1,17 @@
 import { Utils } from './utils';
 
 export class NeuralNetwork {
-  constructor(inSize = 2, outSize = 2) {
+  /*
+  inSize is the number of input neurons
+  hiddenLayer is a 1D array, each value = number hiddenLayer neurons
+  */
+  constructor(inSize = 2, hiddenLayers = [4], outSize = 2) {
     this.input = new InputLayer(inSize);
-    this.hidden = new Array(new HiddenLayer(8), new HiddenLayer(8));
+    this.hidden = [];
     this.output = new OutputLayer(outSize);
+
+    hiddenLayers.forEach((num) => this.hidden.push(new HiddenLayer(num)));
+    this.initializeWeights();
   }
   fit(X, y, batchSize = 32, epochs = 100, lr = 0.1) {
     this.initializeWeights();
@@ -64,6 +71,65 @@ export class NeuralNetwork {
       Utils.shuffle(X, y);
     }
   }
+
+  epoch(X, y, batchSize = 32, lr = 0.01) {
+    // in case batch too big
+    if (batchSize > X.length) {
+      batchSize = X.length;
+    }
+    for (let batch = 0; batch < Math.floor(X.length / batchSize); batch++) {
+      let overallGradient;
+      let overallBiasGradient;
+      for (let i = 0; i < batchSize; i++) {
+        this.input.neurons = Array.from(X[i + batch * batchSize]);
+        this.forwardPass();
+        // multiply the lr and 1/batchSize to get average
+        let [updateGradients, biasGradients] = this.backwardsPass(
+          y[i + batch * batchSize]
+        );
+        updateGradients = updateGradients.map((mat) => {
+          return mat.map((vec) => {
+            return vec.map((val) => (1 / batchSize) * lr * val);
+          });
+        });
+        biasGradients = biasGradients.map((vec) => {
+          return vec.map((val) => (1 / batchSize) * lr * val);
+        });
+
+        if (i === 0) {
+          overallGradient = Array.from(updateGradients);
+          overallBiasGradient = Array.from(biasGradients);
+        } else {
+          overallGradient = overallGradient.map((mat, ind) =>
+            Utils.matrixAdd(mat, updateGradients[ind])
+          );
+          overallBiasGradient = overallBiasGradient.map((vec, ind1) => {
+            return vec.map((val, ind2) => val + biasGradients[ind1][ind2]);
+          });
+        }
+      }
+      // update weights (matrix sum/subtract)
+      this.input.weights = Utils.matrixSubtract(
+        this.input.weights,
+        overallGradient[0]
+      );
+      this.input.bias = this.input.bias.map(
+        (val, ind) => val - overallBiasGradient[0][ind]
+      );
+      // subtract for each layer
+      for (let layer = 0; layer < this.hidden.length; layer++) {
+        this.hidden[layer].weights = Utils.matrixSubtract(
+          this.hidden[layer].weights,
+          overallGradient[layer + 1]
+        );
+        this.hidden[layer].bias = this.hidden[layer].bias.map(
+          (val, ind) => val - overallBiasGradient[layer + 1][ind]
+        );
+      }
+    }
+    Utils.shuffle(X, y);
+  }
+
   fitTest(X, y, batchSize = 2, epochs = 1, lr = 0.01) {
     this.initializeWeights();
     this.printNN();
