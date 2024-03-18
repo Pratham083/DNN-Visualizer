@@ -4,6 +4,9 @@ import Neuron from './neuron';
 import Weight from './weight';
 import Grid from './predict-grid';
 
+// assumes only 2 inputs (because of prediction grid)
+// can implement to add more inputs with feature engineering in future
+
 const deepCopyWeights = (neuralNet) => {
   const copyArr = [
     neuralNet.input.weights.map((arr) => Array.from(arr)),
@@ -24,7 +27,7 @@ const deepCopyActivation = (neuralNet) => {
 };
 
 // note: len is grid length in terms of number of predictions (x or y, should be square)
-const predictGrid = (neuralNet, len) => {
+const predictGrid = (neuralNet, len, threeInput) => {
   const step = 1 / len;
   const X = Array.from({ length: len }, (_, i) => {
     return Array.from({ length: len }, (_, j) => [i * step, j * step]);
@@ -37,7 +40,6 @@ const predictGrid = (neuralNet, len) => {
       return [...neuralNet.output.neurons];
     });
   });
-
   return predictions;
 };
 
@@ -68,18 +70,18 @@ export const Model = ({ nodeCoords, layers, data }) => {
     deepCopyActivation(nnRef.current)
   );
   const [predictions, setPredictions] = useState(
-    predictGrid(nnRef.current, 20)
+    predictGrid(nnRef.current, 15)
   );
 
   const fit = async (X, y, epochs) => {
     const delay = () => new Promise((resolve) => setTimeout(resolve, 0));
     nnRef.current.initializeWeights();
     for (let i = 0; i < epochs; i++) {
-      nnRef.current.epoch(X, y, 32, 0.1);
+      nnRef.current.epoch(X, y, 32, 1);
       // canvas state thing and create seperate component
       setModelParams(deepCopyWeights(nnRef.current));
       setModelNeurons(deepCopyActivation(nnRef.current));
-      setPredictions(predictGrid(nnRef.current, 20));
+      setPredictions(predictGrid(nnRef.current, 15));
       await delay();
     }
   };
@@ -87,9 +89,9 @@ export const Model = ({ nodeCoords, layers, data }) => {
   return (
     <>
       <div>
-        <button onClick={() => fit(data[0], data[1], 300)}>Train</button>
+        <button onClick={() => fit(data[0], data[1], 1000)}>Train</button>
       </div>
-      <svg width="1000" height="500">
+      <svg width="800" height="400">
         {nodeCoords.slice(0, nodeCoords.length - 1).map((layer, i) => {
           return layer.map((coord, j) => {
             return nodeCoords[i + 1].map((nextCoord, k) => {

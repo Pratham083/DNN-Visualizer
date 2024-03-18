@@ -3,33 +3,11 @@ import { useState, useRef, useEffect } from 'react';
 import { Model } from '../components/model';
 import { NeuralNetwork } from '../utils/neural-network';
 import './home.css';
-
-function generateSampleData() {
-  const numSamples = 10000;
-  const dataX = []; // coordinates
-  const dataY = []; // label
-
-  for (let i = 0; i < numSamples; i++) {
-    const x = Math.random();
-    const y = Math.random();
-    let label;
-
-    if (x <= 0.5 && y >= 0.5) {
-      label = 0;
-    } else if (x >= 0.5 && y <= 0.5) {
-      label = 0;
-    } else if (x > 0.5 && y > 0.5) {
-      label = 1;
-    } else {
-      label = 1;
-    }
-
-    dataX.push([x, y]);
-    dataY.push(label);
-  }
-
-  return [dataX, dataY];
-}
+import {
+  generateCheckerData,
+  generateParabolaData,
+  generateXShapeData,
+} from '../utils/data-functions';
 
 function result(real, pred) {
   let matches = 0;
@@ -45,7 +23,7 @@ export const Home = () => {
   // useState(input length, [hidden length(s)], output length)
   const [modelNodes, setModelNodes] = useState([2, 4, 4, 2]);
 
-  const [trainingData, setTrainingData] = useState(generateSampleData());
+  const [trainingData, setTrainingData] = useState(generateCheckerData());
 
   const [nodeCoords, setNodeCoords] = useState([]);
   useEffect(() => {
@@ -72,9 +50,78 @@ export const Home = () => {
     setNodeCoords(tempCoords);
   }, [modelNodes]);
 
+  // maybe add img link after of data
+  const dataFunctions = [
+    { data: generateCheckerData, label: 'Checker (Easy)' },
+    { data: generateParabolaData, label: 'Double Parabola (Medium)' },
+    { data: generateXShapeData, label: 'X Shape (Hard)' },
+  ];
+
   return (
     <>
-      <p className="title">Neural Network from Scratch</p>
+      <p className="title">Neural Network Visualizer</p>
+      <div>
+        <p className="subtitle">Choose Training Data:</p>
+        <form>
+          {dataFunctions.map((obj, i) => {
+            return (
+              <div key={`radioDiv${i}`} className="inline-block">
+                <input
+                  type="radio"
+                  key={`radio${i}`}
+                  name="dataFunction"
+                  id={obj.label}
+                  onChange={() => {
+                    setTrainingData(obj.data());
+                  }}
+                />
+                <label key={`label${i}`} htmlFor={obj.label}>
+                  {obj.label}
+                </label>
+              </div>
+            );
+          })}
+        </form>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <button
+          className="padding-10px"
+          onClick={() => {
+            setModelNodes(() => {
+              let newNodes = [...modelNodes];
+              if (newNodes.length > 3) {
+                newNodes.pop();
+                newNodes[newNodes.length - 1] = 2;
+              }
+              return newNodes;
+            });
+          }}
+        >
+          -
+        </button>
+        <p className="padding-10px">{`${modelNodes.length} Layers`}</p>
+        <button
+          className="padding-10px"
+          onClick={() => {
+            setModelNodes(() => {
+              let newNodes = [...modelNodes];
+              if (modelNodes.length < 6) {
+                newNodes.push(2);
+                newNodes[newNodes.length - 2] = 4;
+              }
+              return newNodes;
+            });
+          }}
+        >
+          +
+        </button>
+      </div>
       <div className="center-header">
         {nodeCoords.map((layer, i) => {
           return (
@@ -95,7 +142,6 @@ export const Home = () => {
                     return newNodes;
                   });
                 }}
-                key={`minus${i}`}
               >
                 -
               </button>

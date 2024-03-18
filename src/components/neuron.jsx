@@ -7,7 +7,7 @@ const Neuron = ({ activation, cx, cy }) => {
       <circle
         cx={`${cx}%`}
         cy={`${cy}%`}
-        r="25"
+        r="15"
         fill={colour}
         stroke="black"
         strokeWidth="3"

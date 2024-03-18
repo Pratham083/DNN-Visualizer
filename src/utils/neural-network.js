@@ -5,7 +5,7 @@ export class NeuralNetwork {
   inSize is the number of input neurons
   hiddenLayer is a 1D array, each value = number hiddenLayer neurons
   */
-  constructor(inSize = 2, hiddenLayers = [4], outSize = 2) {
+  constructor(inSize = 3, hiddenLayers = [4], outSize = 2) {
     this.input = new InputLayer(inSize);
     this.hidden = [];
     this.output = new OutputLayer(outSize);
