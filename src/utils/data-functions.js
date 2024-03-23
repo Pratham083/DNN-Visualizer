@@ -48,7 +48,7 @@ export function generateXShapeData() {
     const y = Math.random();
     let label;
 
-    if (inX(x, y, 0.2)) {
+    if (inX(x, y, 0.1)) {
       label = 0;
     } else {
       label = 1;

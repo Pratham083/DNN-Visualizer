@@ -3,6 +3,7 @@ import { NeuralNetwork } from '../utils/neural-network';
 import Neuron from './neuron';
 import Weight from './weight';
 import Grid from './predict-grid';
+import './model.css';
 
 // assumes only 2 inputs (because of prediction grid)
 // can implement to add more inputs with feature engineering in future
@@ -72,12 +73,25 @@ export const Model = ({ nodeCoords, layers, data }) => {
   const [predictions, setPredictions] = useState(
     predictGrid(nnRef.current, 15)
   );
+  const trainingState = useRef('Start');
+  const [playButtonState, setPlayButtonState] = useState(trainingState.current);
 
   const fit = async (X, y, epochs) => {
+    if (trainingState.current === 'Running') {
+      trainingState.current = 'Paused';
+      return;
+    } else if (trainingState.current === 'Start') {
+      nnRef.current.initializeWeights();
+    }
+    trainingState.current = 'Running';
     const delay = () => new Promise((resolve) => setTimeout(resolve, 0));
-    nnRef.current.initializeWeights();
-    for (let i = 0; i < epochs; i++) {
+    let count = 0; // later replace with epoch useState
+    while (trainingState.current === 'Running') {
       nnRef.current.epoch(X, y, 32, 1);
+      count++;
+      if (count > 10000) {
+        break;
+      }
       // canvas state thing and create seperate component
       setModelParams(deepCopyWeights(nnRef.current));
       setModelNeurons(deepCopyActivation(nnRef.current));
@@ -86,10 +100,26 @@ export const Model = ({ nodeCoords, layers, data }) => {
     }
   };
 
+  const restart = () => {
+    trainingState.current = 'Start';
+    nnRef.current.initializeWeights();
+    setModelParams(deepCopyWeights(nnRef.current));
+    setModelNeurons(deepCopyActivation(nnRef.current));
+    setPredictions(predictGrid(nnRef.current, 15));
+  };
+
   return (
     <>
       <div>
-        <button onClick={() => fit(data[0], data[1], 1000)}>Train</button>
+        <button
+          onClick={() => fit(data[0], data[1], 1000)}
+          className="button-margin"
+        >
+          {trainingState.current === 'Running' ? 'Pause' : 'Train'}
+        </button>
+        <button onClick={() => restart()} className="button-margin">
+          Restart
+        </button>
       </div>
       <svg width="800" height="400">
         {nodeCoords.slice(0, nodeCoords.length - 1).map((layer, i) => {
