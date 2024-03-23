@@ -1,7 +1,7 @@
 # Deep Neural Network from Scratch using Javascript
 Pratham Patel
 ## Overview
-The goal of this project is to create a deep neural network from scratch. React will be used to visualize the neural network as it learns on some simple datasets.
+In this project I created a deep neural network from scratch in Javascript. React was used to visualize the neural network as it learns on some simple datasets.
 
 - The model uses softmax for the output layer, cross entropy for the loss function, and sigmoid activation in the hidden layers
 - The model uses biases, however they don't show in the visualization for simplicity
